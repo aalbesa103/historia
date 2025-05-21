@@ -1,1 +1,1035 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía de Estudio Interactiva: Edad Media</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css" 
+     crossorigin="anonymous" referrerpolicy="no-referrer" />
 
+    <style>
+        /* Estilos generales de la guía */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F3E9DC;
+            color: #4A3B31;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .font-medieval {
+            font-family: 'MedievalSharp', cursive;
+        }
+        .content-section {
+            background-color: #FFF8E1;
+            border: 2px solid #8B4513;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .nav-button {
+            background-color: #A0522D;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin: 5px;
+            border: 1px solid #800000;
+            transition: background-color 0.3s;
+            cursor: pointer;
+        }
+        .nav-button:hover, .nav-button.active {
+            background-color: #5D4037;
+        }
+        .question-container, .interactive-element-container {
+            background-color: #FAF0E6;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            border: 1px solid #D2B48C;
+        }
+        .option-button, .interactive-button {
+            background-color: #DEB887;
+            border: 1px solid #8B4513;
+            color: #4A3B31;
+            padding: 8px 12px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .option-button:hover, .interactive-button:hover {
+            background-color: #CDA68A;
+        }
+        .feedback { margin-top: 10px; font-weight: bold; }
+        .correct { color: #228B22; }
+        .incorrect { color: #B22222; }
+        .hidden-section { display: none; }
+        .progress-bar-container { width: 100%; background-color: #E0E0E0; border-radius: 5px; margin-bottom:10px; }
+        .progress-bar { width: 0%; height: 20px; background-color: #4CAF50; text-align: center; line-height: 20px; color: white; border-radius: 5px; transition: width 0.5s ease-in-out; }
+
+        header.guide-header { text-align: center; margin-bottom: 2rem; padding-top: 1rem; }
+        footer.guide-footer { text-align: center; padding: 1rem; font-size: 0.9rem; color: #718096; width: 100%; background-color: #e2e8f0; margin-top: auto; }
+
+        #map-header { background-color: #374151; color: white; padding: 1rem 0; text-align: center; width: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 900; margin-bottom: 15px; border-radius: 6px; }
+        #map-header h1 { margin: 0; font-size: 1.5rem; }
+        #interactive-map-area { width: 100%; display: flex; flex-direction: column; align-items: center; padding: 0; box-sizing: border-box; }
+        #timeline-container { background-color: #fff; padding: 15px 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; width: 100%; max-width: 800px; box-sizing: border-box; }
+        #timeline-slider { margin: 20px 0; }
+        #timeline-display { text-align: center; font-size: 1rem; font-weight: 500; color: #4A5568; }
+        #map-container { width: 100%; height: 60vh; max-height: 500px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.15); overflow: hidden; margin-top: 10px; }
+        #map { width: 100%; height: 100%; }
+        .leaflet-popup-content-wrapper { border-radius: 6px; background-color: #fff; }
+        .leaflet-popup-content { font-size: 0.9rem; line-height: 1.4; }
+        .leaflet-popup-content strong { color: #2c5282; display: block; margin-bottom: 4px; }
+        .leaflet-popup-content em { color: #555; font-size: 0.85rem; }
+        .leaflet-popup-content p { margin: 8px 0 0 0; }
+        .leaflet-control-layers { border-radius: 5px; box-shadow: 0 1px 5px rgba(0,0,0,0.4); }
+
+        .noUi-target { background: #E5E7EB; border-radius: 4px; border: 1px solid #D1D5DB; box-shadow: inset 0 1px 1px #F9FAFB, 0 3px 6px -5px #777; }
+        .noUi-connect { background: #3B82F6; box-shadow: inset 0 0 3px rgba(59,130,246,0.4); }
+        .noUi-handle { border: 1px solid #D1D5DB; border-radius: 50%; background: #FFF; box-shadow: inset 0 0 1px #FFF, inset 0 1px 7px #EBEBEB, 0 3px 6px -3px #777; cursor: grab; }
+        .noUi-handle:focus { outline: none; }
+        .noUi-handle:active { cursor: grabbing; }
+        [disabled] .noUi-connect, [disabled].noUi-connect { background: #B8B8B8; }
+        [disabled] .noUi-handle { cursor: not-allowed; }
+
+        /* Estilos para nuevos elementos interactivos */
+        .draggable { padding: 8px; margin: 4px; background-color: #FDE68A; border: 1px solid #FBBF24; border-radius: 4px; cursor: grab; text-align: center; }
+        .drop-target { padding: 15px; margin-top:10px; border: 2px dashed #A0522D; border-radius: 6px; min-height: 60px; background-color: #FEF3C7; }
+        .pyramid-level-interactive { background-color: #D2B48C; border: 1px solid #8B4513; padding: 10px; margin: 5px auto; border-radius: 4px; text-align: center; cursor: pointer; width: 70%; }
+        .pyramid-level-interactive:hover { background-color: #BC987E; }
+        .flashcard { width: 200px; height: 120px; background-color: #FFF8DC; border: 1px solid #8B4513; border-radius: 8px; margin: 10px; padding:15px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; cursor: pointer; perspective: 1000px; }
+        .flashcard-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
+        .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+        .flashcard-front, .flashcard-back { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; display: flex; justify-content: center; align-items: center; padding:10px; box-sizing: border-box;}
+        .flashcard-back { background-color: #F5DEB3; transform: rotateY(180deg); }
+        .rotation-field { border:1px solid #8B4513; padding:10px; margin:5px; text-align:center; background-color:#FFFACD; }
+
+        @media (max-width: 768px) {
+            #map-header h1 { font-size: 1.2rem; }
+            #map-container { height: 50vh; } 
+            #timeline-container { padding: 10px 15px; }
+            .leaflet-control-layers-expanded { max-width: calc(100vw - 60px); }
+            .draggable { font-size:0.9rem; padding:6px;}
+            .pyramid-level-interactive { width: 90%;}
+            .flashcard {width:150px; height:100px;}
+        }
+    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] }}}}
+    </script>
+</head>
+<body class="p-4 md:p-8">
+
+    <header class="guide-header">
+        <h1 class="font-medieval text-4xl md:text-5xl text-[#5D4037]">Guía de Estudio Interactiva</h1>
+        <h2 class="font-medieval text-3xl md:text-4xl text-[#795548]">Edad Media Europea</h2>
+    </header>
+
+    <nav id="navigation" class="flex flex-wrap justify-center mb-8">
+    </nav>
+
+    <main id="main-content">
+    </main>
+
+    <footer class="guide-footer">
+        <p class="text-sm text-[#5D4037]">&copy; 2024 Tu Guía de Estudio Medieval. ¡Mucha suerte!</p>
+        <p class="text-xs text-gray-500 mt-1">Los datos históricos del mapa son simplificados para demostración. Las fechas son aproximadas.</p>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.js"></script>
+
+    <script>
+        const studyData = {
+            sections: [
+                {
+                    id: "transicion",
+                    title: "1. Transición Antigüedad - Edad Media",
+                    summary: `
+                        <h3 class="font-medieval text-xl mb-2">Fin del Imperio Romano</h3>
+                        <p><strong>Contexto del Bajo Imperio:</strong> Crisis del Siglo III (inestabilidad política, presión fiscal, primeras incursiones germanas). Muchos campesinos romanos escapaban del Imperio por los altos impuestos.</p>
+                        <p><strong>División (395 d.C.):</strong> Tras Teodosio, Imperio de Occidente (Roma, vulnerable) e Imperio de Oriente (Bizantino, Constantinopla, más estable y con mejor comercio para financiar ejércitos).</p>
+                        
+                        <div id="interactive-map-section" class="my-6">
+                            <div id="map-header">
+                                <h1>Mapa Interactivo: Invasiones del Imperio Romano</h1>
+                            </div>
+                            <div id="interactive-map-area">
+                                <div id="timeline-container">
+                                    <div id="timeline-display">Cargando línea de tiempo...</div>
+                                    <div id="timeline-slider"></div>
+                                </div>
+                                <div id="map-container">
+                                    <div id="map"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h4 class="font-semibold mt-3">Romanos vs. Germanos ("Bárbaros"):</h4>
+                        <table class="w-full my-2 border-collapse border border-gray-400 text-sm">
+                         <thead><tr><th class="border border-gray-300 p-1 md:p-2">Característica</th><th class="border border-gray-300 p-1 md:p-2">Romanos</th><th class="border border-gray-300 p-1 md:p-2">Germanos</th></tr></thead>
+                         <tbody>
+                          <tr><td class="border border-gray-300 p-1 md:p-2">Idioma</td><td class="border border-gray-300 p-1 md:p-2">Latín</td><td class="border border-gray-300 p-1 md:p-2">Lenguas germánicas</td></tr>
+                          <tr><td class="border border-gray-300 p-1 md:p-2">Organización</td><td class="border border-gray-300 p-1 md:p-2">Imperio centralizado</td><td class="border border-gray-300 p-1 md:p-2">Reinos, clanes</td></tr>
+                          <tr><td class="border border-gray-300 p-1 md:p-2">Economía</td><td class="border border-gray-300 p-1 md:p-2">Comercio extenso, moneda</td><td class="border border-gray-300 p-1 md:p-2">Subsistencia, trueque</td></tr>
+                          <tr><td class="border border-gray-300 p-1 md:p-2">Religión</td><td class="border border-gray-300 p-1 md:p-2">Politeístas, luego Cristianismo</td><td class="border border-gray-300 p-1 md:p-2">Paganos, arrianos</td></tr>
+                          <tr><td class="border border-gray-300 p-1 md:p-2">Derecho</td><td class="border border-gray-300 p-1 md:p-2">Escrito</td><td class="border border-gray-300 p-1 md:p-2">Consuetudinario</td></tr>
+                         </tbody>
+                        </table>
+
+                        <h4 class="font-semibold mt-2">Invasiones Germánicas:</h4>
+                        <ul class="list-disc list-inside ml-4">
+                            <li>Causas: Búsqueda de tierras, presión de otros pueblos (Hunos), debilidad romana.</li>
+                            <li>Pueblos: Visigodos (saqueo Roma 410, Hispania), Ostrogodos (Italia), Vándalos (N. África, saqueo Roma 455), Francos (Galia), Anglosajones (Britania).</li>
+                        </ul>
+                        <p><strong>Caída de Occidente (476 d.C.):</strong> Proceso largo. Rómulo Augústulo depuesto por Odoacro. Occidente sin ejército fuerte facilitó invasiones, formación lenguas romances.</p>
+                        <p><strong>Consecuencias:</strong> Fragmentación política, ruralización, disminución comercio/moneda, pérdida unidad cultural, auge Iglesia Católica.</p>
+                        
+                        <h4 class="font-semibold mt-3">Conceptos de Organización Política:</h4>
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>Reino:</strong> Territorio pequeño, rey (herencia), fronteras definidas, cultura dominante, tributos.</li>
+                            <li><strong>Imperio:</strong> Gran territorio (conquistas), emperador/emperatriz, multicultural, tributos.</li>
+                            <li><strong>Tributos:</strong> Pagos obligatorios al gobernante.</li>
+                        </ul>
+                    `,
+                    interactiveElementHTML: `
+                        <div class="interactive-element-container">
+                            <h4 class="font-medieval text-lg mb-3">Clasifica: ¿Romano o Germano?</h4>
+                            <p class="text-sm mb-2">Arrastra las características a la columna correcta.</p>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <h5 class="font-semibold text-center mb-2">Características Romanas</h5>
+                                    <div id="drop-romano" class="drop-target p-2" ondragover="event.preventDefault()" ondrop="dropCharacteristic(event, 'romano')"></div>
+                                </div>
+                                <div>
+                                    <h5 class="font-semibold text-center mb-2">Características Germanas</h5>
+                                    <div id="drop-germano" class="drop-target p-2" ondragover="event.preventDefault()" ondrop="dropCharacteristic(event, 'germano')"></div>
+                                </div>
+                            </div>
+                            <div id="characteristics-source" class="mt-4 flex flex-wrap justify-center">
+                                </div>
+                            <p id="drag-feedback" class="text-center mt-2 h-6"></p>
+                        </div>
+                    `,
+                    initInteractiveElement: function() { initDragAndDropCharacteristics(); },
+                    quiz: [ 
+                        { type: "multiple_choice", question: "¿En qué año se considera tradicionalmente la caída del Imperio Romano de Occidente?", options: ["395 d.C.", "410 d.C.", "476 d.C.", "800 d.C."], answer: "476 d.C.", explanation: "En 476 d.C., Odoacro depuso a Rómulo Augústulo." },
+                        { type: "true_false", question: "Los pueblos germanos tenían un sistema de derecho escrito tan complejo como el romano.", answer: false, explanation: "Los germanos se regían por el derecho consuetudinario." },
+                        { type: "fill_blank", question: "Un vasto territorio multicultural gobernado por un emperador se define como un ____.", answer: "Imperio", explanation: "Un imperio se caracteriza por su gran extensión y diversidad." },
+                        { type: "matching", question: "Relaciona el pueblo germánico con su principal área de asentamiento:", items: ["Visigodos", "Vándalos", "Francos"], matches: ["Hispania", "Norte de África", "Galia"], explanation: "Visigodos en Hispania, Vándalos en el Norte de África, y Francos en la Galia." }
+                    ]
+                },
+                {
+                    id: "feudalismo",
+                    title: "2. El Sistema Feudal",
+                    summary: `
+                        <h3 class="font-medieval text-xl mb-2">Definición y Orígenes</h3>
+                        <p>Sistema político, social y económico (s. V-XV, auge s. IX-XIII) basado en lazos de dependencia personal (vasallaje) y concesión de tierras (feudos). Surge por inseguridad tras caída Imperio Carolingio (Tratado Verdún 843) y nuevas invasiones (vikingos, magiares, sarracenos). Los reyes delegan poder en señores locales (funcionarios que se fortalecen y se convierten en nobleza hereditaria) a cambio de lealtad. La nobleza forma ejércitos propios.</p>
+                        <p><strong>Concepto de Ley:</strong> No existía como hoy. Primaban las relaciones personales de poder y lealtad. Los más poderosos exigían lealtad a cambio de protección. Los caballeros defendían las tierras.</p>
+                        <p><strong>Reparto de la Tierra:</strong> El Rey era propietario de la tierra y la repartía: una parte a la Iglesia, una parte para él, y otra a los Señores Feudales. Estos, a su vez, la repartían entre caballeros que les habían ayudado, y los caballeros entre siervos y campesinos libres.</p>
+                        
+                        <h4 class="font-semibold mt-2">Elementos Clave:</h4>
+                        <p><strong>Vasallaje:</strong> Contrato entre señor y vasallo.</p>
+                        <ul class="list-disc list-inside ml-4">
+                            <li>Ceremonia: Homenaje, Juramento de Fidelidad, Investidura.</li>
+                            <li>Obligaciones Vasallo: <em>Auxilium</em> (ayuda militar), <em>Consilium</em> (consejo). Recibía el feudo.</li>
+                            <li>Obligaciones Señor: Protección, Manutención (entrega de feudo). Gobernaba la tierra recibida.</li>
+                        </ul>
+                        <p><strong>Feudo:</strong> Territorio entregado por reyes a nobles/gobernadores a cambio de lealtad. Unidad de producción y poder. El señor tenía jurisdicción.</p>
+                        <ul class="list-disc list-inside ml-4">
+                            <li>División: Reserva Señorial (explotada por el señor, trabajada por siervos) y Mansos (parcelas para campesinos a cambio de rentas/servicios).</li>
+                        </ul>
+                        <p><strong>Poder Descentralizado:</strong> Reyes con poder teórico, grandes señores autónomos. "El vasallo de mi vasallo no es mi vasallo".</p>
+                    `,
+                    interactiveElementHTML: `
+                        <div class="interactive-element-container">
+                            <h4 class="font-medieval text-lg mb-3">El Contrato Feudal: Roles</h4>
+                            <p class="text-sm mb-2">Haz clic en "Señor" o "Vasallo" para ver un resumen de sus principales obligaciones y derechos.</p>
+                            <div class="flex justify-around mt-4">
+                                <button class="interactive-button" onclick="showFeudalRoleInfo('señor')">Señor Feudal</button>
+                                <button class="interactive-button" onclick="showFeudalRoleInfo('vasallo')">Vasallo</button>
+                            </div>
+                            <div id="feudal-role-info" class="mt-4 p-3 bg-white rounded shadow min-h-[100px]">
+                                <p>Selecciona un rol para ver la información.</p>
+                            </div>
+                        </div>
+                    `,
+                    initInteractiveElement: function() { /* No se necesita JS complejo para esto inicialmente, se maneja con showFeudalRoleInfo */ },
+                    quiz: [ 
+                        { type: "multiple_choice", question: "¿Cuál era la principal obligación militar de un vasallo hacia su señor?", options: ["Pagar impuestos en moneda", "Dar consejo en la corte", "Proveer servicio militar (Auxilium)", "Trabajar las tierras del señor"], answer: "Proveer servicio militar (Auxilium)", explanation: "El 'Auxilium' o ayuda militar era la obligación fundamental del vasallo." },
+                        { type: "true_false", question: "En el sistema feudal, el poder estaba fuertemente centralizado en la figura del rey.", answer: false, explanation: "El feudalismo se caracterizó por un poder descentralizado." },
+                        { type: "fill_blank", question: "El acto por el cual el vasallo juraba lealtad a su señor se conocía como ____ de Fidelidad.", answer: "Juramento", explanation: "El Juramento de Fidelidad sellaba el lazo de vasallaje." },
+                        { type: "matching", question: "Relaciona el término con su definición:", items: ["Investidura", "Reserva Señorial", "Mansos"], matches: ["Entrega simbólica del feudo", "Tierras explotadas directamente por el señor", "Parcelas para campesinos"], explanation: "Investidura es la entrega del feudo, Reserva Señorial las tierras del señor, Mansos las parcelas campesinas." }
+                    ]
+                },
+                {
+                    id: "sociedad",
+                    title: "3. La Sociedad Medieval: Los Tres Órdenes",
+                    summary: `
+                        <h3 class="font-medieval text-xl mb-2">Estructura Estamental Jerárquica</h3>
+                        <p>Sociedad dividida en tres órdenes o estamentos, considerados de origen divino e inmutables ("Nacías campesino, morías campesino"). Escasa movilidad social.</p>
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong><em>Oratores</em> (Clero):</strong> Función de rezar, administrar sacramentos, preservar cultura. Alto clero (obispos, abades, de origen noble, poseían feudos) y bajo clero (sacerdotes, monjes). Privilegios: no impuestos directos, tribunales propios, recibían el diezmo.</li>
+                            <li><strong><em>Bellatores</em> (Nobleza):</strong> Función de defender mediante las armas, impartir justicia. Reyes, duques, condes, caballeros. Vida: guerra, caza, torneos. Vivían en castillos. Privilegios: poseían tierras (feudos), no pagaban mayoría de impuestos, derecho a portar armas. Código de Caballería.</li>
+                            <li><strong><em>Laboratores</em> (Campesinado y otros):</strong> Función de mantener con su trabajo a los otros dos órdenes. Mayoría de la población.
+                                <ul class="list-disc list-inside ml-6">
+                                    <li>Siervos de la Gleba: Adscritos a la tierra del señor, no podían abandonarla. Obligaciones: corvea (trabajo en reserva señorial), rentas en especie, banalidades (pago por uso de molino, horno del señor). Recibían protección y lugar donde vivir.</li>
+                                    <li>Campesinos Libres (Villanos): Jurídicamente libres, podían moverse (con dificultades). Poseían pequeñas parcelas (alodios) o arrendaban. Pagaban rentas y diezmo.</li>
+                                </ul>
+                                La familia campesina era generalmente autosuficiente.
+                            </li>
+                        </ul>
+                    `,
+                    interactiveElementHTML: `
+                        <div class="interactive-element-container">
+                            <h4 class="font-medieval text-lg mb-3">Pirámide Social Interactiva</h4>
+                            <p class="text-sm mb-2">Haz clic en cada nivel de la pirámide para aprender más sobre su función.</p>
+                            <div id="interactive-pyramid" class="mt-4">
+                                <div class="pyramid-level-interactive" onclick="showPyramidInfo('clero')">Oratores (Clero)</div>
+                                <div class="pyramid-level-interactive" onclick="showPyramidInfo('nobleza')">Bellatores (Nobleza)</div>
+                                <div class="pyramid-level-interactive" onclick="showPyramidInfo('campesinado')">Laboratores (Campesinado)</div>
+                            </div>
+                            <div id="pyramid-info" class="mt-4 p-3 bg-white rounded shadow min-h-[80px]">
+                                <p>Selecciona un nivel de la pirámide.</p>
+                            </div>
+                        </div>
+                    `,
+                    initInteractiveElement: function() { /* Manejado por showPyramidInfo */ },
+                    quiz: [ 
+                        { type: "multiple_choice", question: "La justificación principal para la división de la sociedad en órdenes era:", options: ["La capacidad económica", "El origen divino y la función de cada grupo", "La fuerza militar", "La elección popular"], answer: "El origen divino y la función de cada grupo", explanation: "Se creía que Dios había ordenado la sociedad en tres estamentos." },
+                        { type: "true_false", question: "Los 'Oratores' eran principalmente los guerreros y nobles.", answer: false, explanation: "Los 'Oratores' eran el clero, los 'Bellatores' los guerreros." },
+                        { type: "fill_blank", question: "El trabajo gratuito que los siervos debían realizar en las tierras del señor se llamaba ____.", answer: "Corvea", explanation: "La corvea era una de las principales cargas de los siervos." }
+                     ]
+                },
+                {
+                    id: "transformaciones_agricolas",
+                    title: "4. Transformaciones Agrícolas y Tecnológicas",
+                    summary: `
+                        <h3 class="font-medieval text-xl mb-2">Avances desde el Siglo XI</h3>
+                        <p>Desde el siglo XI, Europa Occidental experimentó un crecimiento en su producción agrícola. Esto fue impulsado por un clima más favorable (Período Cálido Medieval, contrastando con una "pequeña era de hielo" anterior) y avances tecnológicos.</p>
+                        <h4 class="font-semibold mt-2">Innovaciones Tecnológicas:</h4>
+                        <ul class="list-disc list-inside ml-4">
+                            <li>Uso generalizado de herramientas de hierro (más duraderas y efectivas).</li>
+                            <li>Arado de Vertedera (o normando): Con ruedas, cuchilla de hierro (reja) y vertedera que volteaba la tierra profundamente. Permitía cultivar suelos pesados. Tirado por caballos o bueyes.</li>
+                            <li>Collera rígida y herradura para caballos (mejoran la eficiencia del tiro).</li>
+                            <li>Molinos de agua y viento (para moler grano, batanar paños, etc.).</li>
+                            <li>Canales y acequias para la conducción de agua y riego.</li>
+                        </ul>
+                        <h4 class="font-semibold mt-2">Sistema de Rotación Trienal:</h4>
+                        <p>División de la tierra cultivable en tres partes: una con cereal de invierno (trigo), otra con cereal de primavera (avena, cebada) o leguminosas (que fijan nitrógeno), y la tercera en barbecho (descanso). Se rotaban anualmente.</p>
+                        <ul class="list-disc list-inside ml-4">
+                            <li>Ventajas: Aumentó la superficie cultivada (2/3 al año vs 1/2), diversificó producción, mejoró fertilidad del suelo.</li>
+                        </ul>
+                        <p><strong>Expansión de la Superficie Cultivada (Roturaciones):</strong> Tala de bosques, desecación de pantanos para ganar nuevas tierras.</p>
+                        <p><strong>Consecuencias:</strong> Aumento de la producción de alimentos, crecimiento demográfico, generación de excedentes agrícolas comercializables, lo que estimuló el comercio y la vida urbana.</p>
+                    `,
+                    interactiveElementHTML: `
+                        <div class="interactive-element-container">
+                            <h4 class="font-medieval text-lg mb-3">Sistema de Rotación Trienal</h4>
+                            <p class="text-sm mb-2">Observa cómo rotaban los cultivos. Haz clic en un año para ver el cambio.</p>
+                            <div class="grid grid-cols-3 gap-2 mt-4 text-center" id="rotation-fields">
+                                <div id="field1" class="rotation-field">Año 1: Trigo (Invierno)</div>
+                                <div id="field2" class="rotation-field">Año 1: Avena/Leguminosas (Primavera)</div>
+                                <div id="field3" class="rotation-field">Año 1: Barbecho</div>
+                            </div>
+                            <button class="interactive-button mt-4 mx-auto block" onclick="rotateCrops()">Rotar al Siguiente Año</button>
+                            <p class="text-center text-sm mt-2" id="current-rotation-year">Año Actual: 1</p>
+                        </div>
+                    `,
+                    initInteractiveElement: function() { currentRotationState = 0; /* Inicializa el estado de rotación */ },
+                    quiz: [ 
+                        { type: "multiple_choice", question: "El sistema de rotación trienal implicaba dejar en barbecho:", options: ["La mitad de la tierra", "Un tercio de la tierra", "Dos tercios de la tierra", "Toda la tierra alternadamente"], answer: "Un tercio de la tierra", explanation: "En la rotación trienal, un tercio de la tierra descansaba." },
+                        { type: "true_false", question: "El Período Cálido Medieval dificultó la agricultura en Europa.", answer: false, explanation: "El Período Cálido Medieval favoreció la agricultura." },
+                        { type: "fill_blank", question: "Una innovación clave que permitió a los caballos tirar del arado más eficientemente sin ahogarse fue la ____ ____.", answer: "Collera Rígida", explanation: "La collera rígida mejoró la capacidad de tiro del caballo." }
+                    ]
+                },
+                {
+                    id: "imperio_carolingio",
+                    title: "5. El Imperio Carolingio y Figuras Clave",
+                    summary: `
+                        <h3 class="font-medieval text-xl mb-2">Carlomagno y su Legado</h3>
+                        <p>Tras la caída del Imperio Romano de Occidente, Europa se fragmentó. En el siglo IX, <strong>Carlomagno</strong>, rey de los francos (768-814), logró unificar gran parte de Europa Occidental, creando el Imperio Carolingio. Fue coronado Emperador por el Papa León III en Roma (Navidad del 800), restaurando simbólicamente el Imperio en Occidente (considerado un precedente del Sacro Imperio Romano Germánico).</p>
+                        <p>Carlomagno organizó su imperio en condados y marcas (zonas fronterizas), supervisados por los <em>missi dominici</em> (enviados del señor). Promovió un renacimiento cultural y educativo (Renacimiento Carolingio).</p>
+                        <p>Tras su muerte, sus sucesores fueron delegando la defensa y protección en funcionarios locales, cuyo poder, inicialmente temporal, se fortaleció, convirtiéndose en señores feudales con derecho a cobrar impuestos y rentas.</p>
+                        <p><strong>Tratado de Verdún (843 d.C.):</strong> Tras la muerte de Ludovico Pío (hijo de Carlomagno), sus tres hijos (Lotario, Luis el Germánico y Carlos el Calvo) se repartieron el Imperio:</p>
+                        <ul class="list-disc list-inside ml-4">
+                            <li>Francia Occidental (futura Francia) para Carlos el Calvo.</li>
+                            <li>Francia Oriental (futura Alemania) para Luis el Germánico.</li>
+                            <li>Lotaringia (franja intermedia desde el Mar del Norte hasta Italia) para Lotario (quien conservó el título imperial).</li>
+                        </ul>
+                        <p>Este tratado marcó la división definitiva del Imperio Carolingio y sentó las bases de las futuras naciones de Francia y Alemania. La fragmentación contribuyó al fortalecimiento del poder de los señores feudales.</p>
+                    `,
+                    interactiveElementHTML: `
+                        <div class="interactive-element-container">
+                            <h4 class="font-medieval text-lg mb-3">Legado de Carlomagno</h4>
+                            <p class="text-sm mb-2">Haz clic en los aspectos para ver más detalles.</p>
+                            <ul class="list-none p-0">
+                                <li class="interactive-button my-1 w-full text-left" onclick="showLegacyDetail('unificacion')">Unificación Territorial</li>
+                                <li class="interactive-button my-1 w-full text-left" onclick="showLegacyDetail('coronacion')">Coronación Imperial</li>
+                                <li class="interactive-button my-1 w-full text-left" onclick="showLegacyDetail('administracion')">Administración (Condados, Missi Dominici)</li>
+                                <li class="interactive-button my-1 w-full text-left" onclick="showLegacyDetail('renacimiento')">Renacimiento Carolingio</li>
+                            </ul>
+                            <div id="legacy-detail" class="mt-3 p-3 bg-white rounded shadow min-h-[70px]">
+                                <p>Selecciona un aspecto del legado de Carlomagno.</p>
+                            </div>
+                        </div>
+                    `,
+                    initInteractiveElement: function() { /* Manejado por showLegacyDetail */ },
+                    quiz: [ 
+                        { type: "multiple_choice", question: "¿Quién coronó a Carlomagno como Emperador?", options: ["Él mismo", "El Papa León III", "Su padre, Pipino el Breve", "Un concilio de nobles francos"], answer: "El Papa León III", explanation: "El Papa León III coronó a Carlomagno en Roma en el año 800." },
+                        { type: "true_false", question: "El Tratado de Verdún fue firmado por Carlomagno para organizar su imperio.", answer: false, explanation: "El Tratado de Verdún dividió el imperio entre los nietos de Carlomagno." },
+                        { type: "fill_blank", question: "El renacimiento cultural y educativo promovido por Carlomagno se conoce como Renacimiento ____.", answer: "Carolingio", explanation: "El Renacimiento Carolingio fue un resurgir del aprendizaje." }
+                    ]
+                },
+                {
+                    id: "resurgimiento_urbano",
+                    title: "6. Resurgimiento Urbano y Comercial (Alta Edad Media)",
+                    summary: `
+                        <h3 class="font-medieval text-xl mb-2">Renacer de las Ciudades (Siglos XI-XIII)</h3>
+                        <p>A partir del siglo XI, la expansión agrícola generó excedentes, impulsando el comercio y el resurgimiento de la vida urbana. Las ciudades (burgos) crecieron o surgieron cerca de castillos, monasterios o cruces de caminos.</p>
+                        <p><strong>Causas:</strong> Excedentes agrícolas, crecimiento demográfico, mayor seguridad relativa (fin de grandes invasiones), reactivación de rutas comerciales (terrestres y marítimas).</p>
+                        <p><strong>Los Burgueses:</strong> Nueva clase social de habitantes de los burgos, dedicados principalmente a la artesanía y el comercio. Buscaban liberarse del dominio señorial obteniendo <strong>cartas de franquicia o fueros</strong>, que les concedían autonomía y derechos.</p>
+                        <p><strong>Gremios:</strong> Asociaciones de artesanos de un mismo oficio (zapateros, herreros, etc.). Regulaban estrictamente la producción: calidad, precios, salarios, formación de aprendices (aprendiz, oficial, maestro). Protegían a sus miembros.</p>
+                        <p><strong>Ferias:</strong> Grandes mercados periódicos (anuales o semestrales) que atraían a comerciantes de largas distancias (ej. ferias de Champaña en Francia). Impulsaron el uso de la moneda y el desarrollo de técnicas comerciales y financieras (letras de cambio, banqueros).</p>
+                        <p>Este período marcó un contraste con la ruralización inicial de la Edad Media, donde las ciudades habían decaído y el comercio era muy reducido.</p>
+                    `,
+                    interactiveElementHTML: `
+                        <div class="interactive-element-container">
+                            <h4 class="font-medieval text-lg mb-3">Explora la Ciudad Medieval</h4>
+                            <p class="text-sm mb-2">Haz clic en los elementos para conocer su importancia.</p>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mt-4">
+                                <button class="interactive-button h-20" onclick="showCityElement('burgueses')">Burgueses</button>
+                                <button class="interactive-button h-20" onclick="showCityElement('gremios')">Gremios</button>
+                                <button class="interactive-button h-20" onclick="showCityElement('ferias')">Ferias</button>
+                                <button class="interactive-button h-20" onclick="showCityElement('fueros')">Fueros/Cartas de Franquicia</button>
+                                <button class="interactive-button h-20" onclick="showCityElement('mercado')">Mercado Urbano</button>
+                                <button class="interactive-button h-20" onclick="showCityElement('catedral')">Catedral</button>
+                            </div>
+                            <div id="city-element-info" class="mt-4 p-3 bg-white rounded shadow min-h-[80px]">
+                                <p>Selecciona un elemento de la ciudad medieval.</p>
+                            </div>
+                        </div>
+                    `,
+                    initInteractiveElement: function() { /* Manejado por showCityElement */ },
+                    quiz: [ 
+                        { type: "multiple_choice", question: "¿Qué eran los gremios?", options: ["Asociaciones de nobles guerreros", "Asociaciones de campesinos libres", "Asociaciones de artesanos de un mismo oficio", "Asociaciones de monjes eruditos"], answer: "Asociaciones de artesanos de un mismo oficio", explanation: "Los gremios agrupaban a artesanos para regular su actividad." },
+                        { type: "true_false", question: "Las ferias medievales eran pequeños mercados locales de frecuencia diaria.", answer: false, explanation: "Las ferias eran grandes mercados periódicos de importancia regional o internacional." },
+                        { type: "fill_blank", question: "Los habitantes de las ciudades que se dedicaban al comercio y la artesanía eran conocidos como ____.", answer: "Burgueses", explanation: "Los burgueses formaron una nueva clase social urbana." }
+                    ]
+                },
+                 {
+                    id: "conceptos_adicionales",
+                    title: "7. Conceptos Adicionales Importantes",
+                    summary: `
+                        <h3 class="font-medieval text-xl mb-2">Términos Clave Medievales</h3>
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>Diezmo:</strong> Contribución del 10% de las cosechas (u otros ingresos) que los fieles debían pagar a la Iglesia.</li>
+                            <li><strong>Barbecho:</strong> Práctica agrícola que consiste en dejar la tierra sin cultivar durante un período para que recupere su fertilidad natural.</li>
+                            <li><strong>Reserva Señorial:</strong> Parte de las tierras de un feudo explotada directamente por el señor feudal, trabajada por sus siervos.</li>
+                            <li><strong>Mansos:</strong> Parcelas de tierra que el señor cedía a los campesinos (libres o siervos) para su sustento, a cambio de rentas y servicios.</li>
+                            <li><strong>Corvea:</strong> Obligación de trabajo gratuito que los siervos y, a veces, campesinos libres debían realizar en las tierras de la reserva señorial durante ciertos días al año.</li>
+                            <li><strong>Banalidades:</strong> Tasas que los campesinos estaban obligados a pagar al señor feudal por el uso de instalaciones de su propiedad y monopolio, como el molino, el horno, la prensa de vino, etc.</li>
+                        </ul>
+                        <h4 class="font-semibold mt-2">Historiadores Mencionados:</h4>
+                        <ul class="list-disc list-inside ml-4">
+                            <li><strong>Leopold von Ranke (s. XIX):</strong> Considerado uno de los fundadores de la historiografía moderna. Abogaba por una historia basada en el análisis crítico de fuentes primarias, buscando "mostrar lo que realmente sucedió" (<em>wie es eigentlich gewesen</em>), con un ideal de objetividad.</li>
+                            <li><strong>Arnold J. Toynbee (s. XX):</strong> Historiador británico conocido por su monumental obra "Estudio de la Historia". Analizó el auge y caída de las civilizaciones desde una perspectiva comparativa y cíclica, buscando patrones y leyes generales. Su enfoque es más interpretativo y filosófico, considerando la historia como un proceso debatible y subjetivo en su interpretación.</li>
+                        </ul>
+                    `,
+                    interactiveElementHTML: `
+                        <div class="interactive-element-container">
+                            <h4 class="font-medieval text-lg mb-3">Tarjetas de Conceptos Clave</h4>
+                            <p class="text-sm mb-2">Haz clic en una tarjeta para ver la definición. Vuelve a hacer clic para ver el término.</p>
+                            <div id="flashcards-container" class="flex flex-wrap justify-center mt-4">
+                                </div>
+                        </div>
+                    `,
+                    initInteractiveElement: function() { initFlashcards(); },
+                    quiz: [ 
+                        { type: "multiple_choice", question: "El historiador que enfatizaba la importancia de mostrar los hechos 'tal cual como pasaron', buscando la objetividad, fue:", options: ["Arnold J. Toynbee", "Carlomagno", "Leopold von Ranke", "Teodosio"], answer: "Leopold von Ranke", explanation: "Leopold von Ranke es famoso por su enfoque en la objetividad." },
+                        { type: "true_false", question: "La 'corvea' era un impuesto pagado en moneda al señor feudal.", answer: false, explanation: "La 'corvea' era una obligación de trabajo gratuito." },
+                        { type: "fill_blank", question: "Las parcelas de tierra que el señor cedía a los campesinos para su sustento se llamaban ____.", answer: "Mansos", explanation: "Los mansos eran las unidades de tierra trabajadas por las familias campesinas." }
+                    ]
+                }
+            ]
+        };
+
+        const navigationContainer = document.getElementById('navigation');
+        const mainContentContainer = document.getElementById('main-content');
+        let currentSectionData = null;
+        let currentQuiz = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let questionsAnsweredInSection = 0;
+        let interactiveMap = null; 
+        let timelineSliderInstance = null; 
+
+        // --- INICIALIZACIÓN DE ELEMENTOS INTERACTIVOS ESPECÍFICOS ---
+        // Sección 1: Drag and Drop Características
+        const characteristicsData = [
+            { text: "Derecho Escrito", type: "romano" }, { text: "Latín como idioma", type: "romano" },
+            { text: "Organización en Clanes", type: "germano" }, { text: "Derecho Consuetudinario", type: "germano" },
+            { text: "Economía de Trueque", type: "germano" }, { text: "Imperio Centralizado", type: "romano" }
+        ];
+        let draggedItem = null;
+
+        function initDragAndDropCharacteristics() {
+            const sourceContainer = document.getElementById('characteristics-source');
+            const romanoDrop = document.getElementById('drop-romano');
+            const germanoDrop = document.getElementById('drop-germano');
+            const feedback = document.getElementById('drag-feedback');
+
+            if (!sourceContainer || !romanoDrop || !germanoDrop || !feedback) {
+                // console.warn("Elementos para Drag & Drop no encontrados en esta sección.");
+                return;
+            }
+            
+            sourceContainer.innerHTML = '';
+            romanoDrop.innerHTML = ''; // Limpiar dropzones
+            germanoDrop.innerHTML = '';
+            feedback.textContent = '';
+
+            characteristicsData.sort(() => Math.random() - 0.5).forEach(char => {
+                const div = document.createElement('div');
+                div.textContent = char.text;
+                div.classList.add('draggable');
+                div.draggable = true;
+                div.dataset.type = char.type;
+                div.id = `char-${char.text.replace(/\s+/g, '-')}`;
+                div.addEventListener('dragstart', (event) => {
+                    draggedItem = event.target;
+                    event.target.style.opacity = '0.5';
+                });
+                div.addEventListener('dragend', (event) => {
+                    event.target.style.opacity = '1';
+                });
+                sourceContainer.appendChild(div);
+            });
+        }
+
+        function dropCharacteristic(event, targetType) {
+            event.preventDefault();
+            const feedback = document.getElementById('drag-feedback');
+            if (!feedback) return;
+
+            if (draggedItem && draggedItem.dataset.type === targetType) {
+                // Verificar si el elemento ya está en una dropzone para evitar duplicados si se intenta arrastrar de nuevo (aunque está deshabilitado)
+                if (event.target.closest('.drop-target') && !event.target.closest('.drop-target').contains(draggedItem)) {
+                     event.target.closest('.drop-target').appendChild(draggedItem);
+                } else if (!event.target.closest('.drop-target')) { // Si se suelta sobre el contenedor general de la dropzone
+                     event.target.appendChild(draggedItem);
+                }
+
+                draggedItem.draggable = false; 
+                draggedItem.style.cursor = 'default';
+                draggedItem.style.backgroundColor = '#A7F3D0'; 
+                feedback.textContent = '¡Correcto!';
+                feedback.className = 'text-center mt-2 h-6 correct';
+            } else if (draggedItem) {
+                feedback.textContent = 'Intenta de nuevo.';
+                feedback.className = 'text-center mt-2 h-6 incorrect';
+            }
+            draggedItem = null;
+            setTimeout(() => { if(feedback) feedback.textContent = ''; }, 2000);
+        }
+
+        // Sección 2: Info Roles Feudales
+        const feudalRolesInfo = {
+            señor: { title: "Señor Feudal", obligations: "Proteger al vasallo, proveer sustento (feudo).", rights: "Recibir ayuda militar y consejo, lealtad del vasallo." },
+            vasallo: { title: "Vasallo", obligations: "Prestar ayuda militar (auxilium) y consejo (consilium) al señor, ser leal.", rights: "Recibir protección y un feudo para su sustento." }
+        };
+        function showFeudalRoleInfo(role) {
+            const infoDiv = document.getElementById('feudal-role-info');
+            if (infoDiv && feudalRolesInfo[role]) {
+                const data = feudalRolesInfo[role];
+                infoDiv.innerHTML = `<h5 class="font-semibold">${data.title}</h5><p><strong>Obligaciones/Responsabilidades:</strong> ${data.obligations}</p><p><strong>Derechos/Beneficios:</strong> ${data.rights}</p>`;
+            }
+        }
+        // Sección 3: Info Pirámide Social
+        const pyramidInfoData = {
+            clero: "<strong>Oratores (Clero):</strong> Encargados de rezar por la salvación de todos, administrar sacramentos, conservar la cultura y la educación. Divididos en Alto Clero (obispos, abades) y Bajo Clero (sacerdotes, monjes).",
+            nobleza: "<strong>Bellatores (Nobleza):</strong> Su función era la guerra y la defensa de la sociedad. Incluía reyes, señores feudales y caballeros. Vivían en castillos y se regían por el código de caballería.",
+            campesinado: "<strong>Laboratores (Campesinado):</strong> La gran mayoría de la población. Trabajaban la tierra para sustentar a los otros dos órdenes. Incluía siervos (atados a la tierra) y campesinos libres."
+        };
+        function showPyramidInfo(level) {
+            const infoDiv = document.getElementById('pyramid-info');
+            if (infoDiv && pyramidInfoData[level]) {
+                infoDiv.innerHTML = `<p>${pyramidInfoData[level]}</p>`;
+            }
+        }
+
+        // Sección 4: Rotación de Cultivos
+        let currentRotationState = 0;
+        const rotationPatterns = [
+            ["Trigo (Invierno)", "Avena/Leguminosas (Primavera)", "Barbecho"],
+            ["Barbecho", "Trigo (Invierno)", "Avena/Leguminosas (Primavera)"],
+            ["Avena/Leguminosas (Primavera)", "Barbecho", "Trigo (Invierno)"]
+        ];
+        function rotateCrops() {
+            currentRotationState = (currentRotationState + 1) % 3;
+            const yearDisplay = document.getElementById('current-rotation-year');
+            if(yearDisplay) yearDisplay.textContent = `Año Actual: ${currentRotationState + 1}`;
+
+            const field1 = document.getElementById('field1');
+            const field2 = document.getElementById('field2');
+            const field3 = document.getElementById('field3');
+
+            if(field1 && field2 && field3){
+                field1.textContent = rotationPatterns[currentRotationState][0];
+                field2.textContent = rotationPatterns[currentRotationState][1];
+                field3.textContent = rotationPatterns[currentRotationState][2];
+            }
+        }
+        
+        // Sección 5: Legado de Carlomagno
+        const legacyDetails = {
+            unificacion: "Carlomagno unificó gran parte de Europa Occidental bajo su mandato, creando un vasto imperio que abarcaba territorios de las actuales Francia, Alemania, Italia y otros países.",
+            coronacion: "Coronado Emperador por el Papa León III en el año 800, este acto simbolizó la restauración del Imperio en Occidente y fortaleció la alianza entre el poder franco y la Iglesia.",
+            administracion: "Organizó su imperio en condados (gobernados por condes) y marcas (regiones fronterizas militarizadas). Los 'missi dominici' eran enviados imperiales que supervisaban a los administradores locales.",
+            renacimiento: "Promovió un renacimiento cultural y educativo, atrayendo a eruditos a su corte, fomentando la creación de escuelas y la copia de manuscritos clásicos y religiosos."
+        };
+        function showLegacyDetail(aspect) {
+            const detailDiv = document.getElementById('legacy-detail');
+            if (detailDiv && legacyDetails[aspect]) {
+                detailDiv.innerHTML = `<p>${legacyDetails[aspect]}</p>`;
+            }
+        }
+
+        // Sección 6: Elementos Ciudad Medieval
+        const cityElementsInfo = {
+            burgueses: "Habitantes de los 'burgos' (ciudades), dedicados principalmente a la artesanía y el comercio. Formaron una nueva clase social con creciente poder económico e influencia.",
+            gremios: "Asociaciones de artesanos de un mismo oficio (ej. zapateros, tejedores). Regulaban la producción, calidad, precios y formación de aprendices para proteger sus intereses.",
+            ferias: "Grandes mercados periódicos que atraían a comerciantes de diversas regiones. Impulsaron el comercio a larga distancia, el uso de la moneda y el desarrollo de técnicas financieras.",
+            fueros: "Documentos otorgados por reyes o señores feudales que concedían privilegios, libertades y autonomía de gobierno a las ciudades, liberándolas parcialmente del control señorial.",
+            mercado: "El centro de la vida económica urbana, donde se intercambiaban productos locales y de otras regiones. Solía ubicarse en la plaza principal.",
+            catedral: "A menudo el edificio más imponente de la ciudad, símbolo del poder de la Iglesia y del orgullo cívico. Su construcción podía durar siglos e impulsaba la economía local."
+        };
+        function showCityElement(element) {
+            const infoDiv = document.getElementById('city-element-info');
+            if (infoDiv && cityElementsInfo[element]) {
+                infoDiv.innerHTML = `<p>${cityElementsInfo[element]}</p>`;
+            }
+        }
+
+        // Sección 7: Flashcards
+        const flashcardData = [
+            { term: "Diezmo", definition: "10% de las cosechas para la Iglesia." },
+            { term: "Barbecho", definition: "Tierra en descanso para recuperar fertilidad." },
+            { term: "Corvea", definition: "Trabajo gratuito de siervos en tierras del señor." },
+            { term: "Banalidades", definition: "Tasas por uso de instalaciones señoriales (molino, horno)." },
+            { term: "Leopold von Ranke", definition: "Historiador (s. XIX) que buscaba la objetividad, 'mostrar lo que realmente sucedió'." },
+            { term: "Arnold J. Toynbee", definition: "Historiador (s. XX) que analizó el auge y caída de civilizaciones, enfoque comparativo." }
+        ];
+        function initFlashcards() {
+            const container = document.getElementById('flashcards-container');
+            if (!container) return;
+            container.innerHTML = ''; 
+            flashcardData.forEach(data => {
+                const card = document.createElement('div');
+                card.classList.add('flashcard');
+                card.innerHTML = `
+                    <div class="flashcard-inner">
+                        <div class="flashcard-front"><p class="font-semibold">${data.term}</p></div>
+                        <div class="flashcard-back"><p class="text-sm">${data.definition}</p></div>
+                    </div>
+                `;
+                card.onclick = () => card.classList.toggle('flipped');
+                container.appendChild(card);
+            });
+        }
+
+
+        // --- LÓGICA GENERAL DE LA GUÍA ---
+        function renderNavigation() {
+            studyData.sections.forEach(section => {
+                const button = document.createElement('button');
+                button.textContent = section.title;
+                button.classList.add('nav-button');
+                button.onclick = () => loadSection(section.id);
+                navigationContainer.appendChild(button);
+            });
+        }
+
+        function updateActiveNavButton(sectionId) { 
+             const buttons = navigationContainer.querySelectorAll('.nav-button');
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+                const section = studyData.sections.find(s => s.id === sectionId);
+                if (section && btn.textContent === section.title) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+        
+        function createProgressBar() { 
+            const progressBarContainer = document.createElement('div');
+            progressBarContainer.className = 'progress-bar-container';
+            const progressBar = document.createElement('div');
+            progressBar.className = 'progress-bar';
+            progressBar.id = 'quiz-progress-bar';
+            progressBarContainer.appendChild(progressBar);
+            return progressBarContainer;
+        }
+
+        function updateProgressBar() { 
+             const progressBar = document.getElementById('quiz-progress-bar');
+            if (progressBar && currentQuiz.length > 0) {
+                const progress = (questionsAnsweredInSection / currentQuiz.length) * 100;
+                progressBar.style.width = progress + '%';
+                progressBar.textContent = `${Math.round(progress)}%`;
+            } else if (progressBar) {
+                 progressBar.style.width = '0%';
+                 progressBar.textContent = '0%';
+            }
+        }
+
+        function loadSection(sectionId) {
+            currentSectionData = studyData.sections.find(s => s.id === sectionId);
+            if (!currentSectionData) return;
+
+            updateActiveNavButton(sectionId);
+            mainContentContainer.innerHTML = ''; 
+
+            const summaryDiv = document.createElement('div');
+            summaryDiv.classList.add('content-section');
+            
+            let contentHTML = `<h2>${currentSectionData.title}</h2>${currentSectionData.summary}`;
+            // El HTML del mapa ya está dentro del 'summary' de la sección 'transicion'
+            // Ahora añadimos el 'interactiveElementHTML' si existe para la sección actual
+            if (currentSectionData.interactiveElementHTML) {
+                contentHTML += currentSectionData.interactiveElementHTML;
+            }
+            summaryDiv.innerHTML = contentHTML;
+            mainContentContainer.appendChild(summaryDiv);
+
+            if (sectionId === "transicion") {
+                setTimeout(initializeInteractiveMap, 50); // Ligero retraso para asegurar que el DOM esté listo
+            } else {
+                if (interactiveMap) { interactiveMap.remove(); interactiveMap = null; }
+                if (timelineSliderInstance && typeof timelineSliderInstance.destroy === 'function') { timelineSliderInstance.destroy(); timelineSliderInstance = null; }
+            }
+
+            if (currentSectionData.initInteractiveElement) {
+                setTimeout(currentSectionData.initInteractiveElement, 50); // Ligero retraso
+            }
+
+
+            if (currentSectionData.quiz && currentSectionData.quiz.length > 0) {
+                currentQuiz = [...currentSectionData.quiz]; 
+                currentQuestionIndex = 0; score = 0; questionsAnsweredInSection = 0;
+                const quizContainer = document.createElement('div');
+                quizContainer.id = 'quiz-container';
+                quizContainer.classList.add('content-section');
+                quizContainer.innerHTML = `<h3 class="font-medieval text-xl mb-3">Cuestionario Interactivo</h3>`;
+                const progressBar = createProgressBar(); 
+                quizContainer.appendChild(progressBar);
+                mainContentContainer.appendChild(quizContainer);
+                displayQuestion();
+                updateProgressBar();
+            }
+        }
+
+        function displayQuestion() { 
+            const quizContainer = document.getElementById('quiz-container');
+            const existingQuestion = quizContainer.querySelector('.question-instance');
+            if(existingQuestion) existingQuestion.remove();
+
+            if (currentQuestionIndex < currentQuiz.length) {
+                const questionData = currentQuiz[currentQuestionIndex];
+                const questionDiv = document.createElement('div');
+                questionDiv.classList.add('question-container', 'question-instance');
+
+                const questionText = document.createElement('p');
+                questionText.classList.add('mb-3', 'font-semibold');
+                questionText.textContent = `${currentQuestionIndex + 1}. ${questionData.question}`;
+                questionDiv.appendChild(questionText);
+
+                const optionsDiv = document.createElement('div');
+                optionsDiv.classList.add('options');
+
+                if (questionData.type === "multiple_choice") {
+                    questionData.options.forEach(option => {
+                        const button = document.createElement('button');
+                        button.textContent = option;
+                        button.classList.add('option-button');
+                        button.onclick = () => checkAnswer(option, questionData);
+                        optionsDiv.appendChild(button);
+                    });
+                } else if (questionData.type === "true_false") {
+                    ["Verdadero", "Falso"].forEach(option => {
+                        const button = document.createElement('button');
+                        button.textContent = option;
+                        button.classList.add('option-button');
+                        button.onclick = () => checkAnswer(option === "Verdadero", questionData); 
+                        optionsDiv.appendChild(button);
+                    });
+                } else if (questionData.type === "fill_blank") {
+                    const input = document.createElement('input');
+                    input.type = "text";
+                    input.classList.add('border', 'p-2', 'rounded', 'w-full', 'md:w-1/2', 'mr-2', 'my-1');
+                    input.id = `fill_blank_input_${currentQuestionIndex}`;
+                    optionsDiv.appendChild(input);
+
+                    const submitButton = document.createElement('button');
+                    submitButton.textContent = "Enviar";
+                    submitButton.classList.add('option-button', 'bg-green-500', 'text-white', 'hover:bg-green-700');
+                    submitButton.onclick = () => {
+                        const userAnswer = document.getElementById(`fill_blank_input_${currentQuestionIndex}`).value;
+                        checkAnswer(userAnswer.trim(), questionData);
+                    };
+                    optionsDiv.appendChild(submitButton);
+                } else if (questionData.type === "matching") {
+                    const itemsContainer = document.createElement('div');
+                    itemsContainer.classList.add('grid', 'grid-cols-1', 'md:grid-cols-2', 'gap-4');
+                    
+                    const itemsSide = document.createElement('div');
+                    itemsSide.innerHTML = '<h4 class="font-semibold mb-1">Conceptos:</h4>';
+                    const matchesSide = document.createElement('div');
+                    matchesSide.innerHTML = '<h4 class="font-semibold mb-1">Definiciones/Relaciones:</h4>';
+
+                    questionData.items.forEach((item, itemIndex) => {
+                        const itemLabel = document.createElement('p');
+                        itemLabel.textContent = `${itemIndex + 1}. ${item}`;
+                        itemLabel.classList.add('mb-2');
+                        itemsSide.appendChild(itemLabel);
+
+                        const select = document.createElement('select');
+                        select.id = `match_select_${currentQuestionIndex}_${itemIndex}`;
+                        select.classList.add('border', 'p-2', 'rounded', 'w-full', 'mb-2');
+                        
+                        const defaultOption = document.createElement('option');
+                        defaultOption.value = "";
+                        defaultOption.textContent = "Selecciona...";
+                        select.appendChild(defaultOption);
+
+                        const shuffledMatches = [...questionData.matches].sort(() => Math.random() - 0.5);
+                        shuffledMatches.forEach(matchOption => {
+                            const optionEl = document.createElement('option');
+                            optionEl.value = matchOption;
+                            optionEl.textContent = matchOption;
+                            select.appendChild(optionEl);
+                        });
+                        matchesSide.appendChild(select);
+                    });
+                    itemsContainer.appendChild(itemsSide);
+                    itemsContainer.appendChild(matchesSide);
+                    optionsDiv.appendChild(itemsContainer);
+
+                    const submitButton = document.createElement('button');
+                    submitButton.textContent = "Verificar Coincidencias";
+                    submitButton.classList.add('option-button', 'bg-green-500', 'text-white', 'hover:bg-green-700', 'mt-3');
+                    submitButton.onclick = () => {
+                        const userAnswers = questionData.items.map((_, itemIndex) => {
+                            return document.getElementById(`match_select_${currentQuestionIndex}_${itemIndex}`).value;
+                        });
+                        checkAnswer(userAnswers, questionData);
+                    };
+                    optionsDiv.appendChild(submitButton);
+                }
+
+
+                questionDiv.appendChild(optionsDiv);
+
+                const feedbackDiv = document.createElement('div');
+                feedbackDiv.id = `feedback_${currentQuestionIndex}`;
+                feedbackDiv.classList.add('feedback');
+                questionDiv.appendChild(feedbackDiv);
+                
+                quizContainer.appendChild(questionDiv);
+
+            } else {
+                displayScore();
+            }
+        }
+        function checkAnswer(userAnswer, questionData) { 
+            const feedbackDiv = document.getElementById(`feedback_${currentQuestionIndex}`);
+            let isCorrect = false;
+
+            if (questionData.type === "multiple_choice" || questionData.type === "true_false") {
+                isCorrect = userAnswer === questionData.answer;
+            } else if (questionData.type === "fill_blank") {
+                isCorrect = userAnswer.toLowerCase() === questionData.answer.toLowerCase();
+            } else if (questionData.type === "matching") {
+                let correctMatchesCount = 0;
+                for(let i = 0; i < questionData.items.length; i++) {
+                    if(userAnswer[i] === questionData.matches[i]) {
+                        correctMatchesCount++;
+                    }
+                }
+                isCorrect = correctMatchesCount === questionData.items.length;
+            }
+
+            if (isCorrect) {
+                feedbackDiv.textContent = "¡Correcto! " + (questionData.explanation || "");
+                feedbackDiv.className = 'feedback correct';
+                score++;
+            } else {
+                let correctAnswerText = questionData.answer;
+                if (questionData.type === "matching") {
+                    correctAnswerText = questionData.items.map((item, i) => `${item} - ${questionData.matches[i]}`).join('; ');
+                } else if (typeof questionData.answer === 'boolean') {
+                    correctAnswerText = questionData.answer ? "Verdadero" : "Falso";
+                }
+                feedbackDiv.textContent = "Incorrecto. La respuesta correcta era: " + correctAnswerText + ". " + (questionData.explanation || "");
+                feedbackDiv.className = 'feedback incorrect';
+            }
+            
+            questionsAnsweredInSection++;
+            updateProgressBar();
+
+            const interactiveElements = document.querySelectorAll('.question-instance .option-button, .question-instance input, .question-instance select');
+            interactiveElements.forEach(el => el.disabled = true);
+
+            currentQuestionIndex++;
+            setTimeout(displayQuestion, 3500); 
+        }
+        function displayScore() { 
+            const quizContainer = document.getElementById('quiz-container');
+            const existingQuestion = quizContainer.querySelector('.question-instance');
+            if(existingQuestion) existingQuestion.remove(); 
+
+            const scoreDiv = document.createElement('div');
+            scoreDiv.classList.add('text-center', 'p-4');
+            scoreDiv.innerHTML = `
+                <h4 class="font-medieval text-lg mb-2">¡Cuestionario Completado!</h4>
+                <p>Tu puntuación: ${score} de ${currentQuiz.length}</p>
+                <button class="option-button mt-4 bg-blue-500 hover:bg-blue-700 text-white" onclick="loadSection(currentSectionData.id)">Reintentar Cuestionario</button>
+            `;
+            quizContainer.appendChild(scoreDiv);
+        }
+
+        // --- LÓGICA DEL MAPA INTERACTIVO (adaptada del código del usuario) ---
+        let activeMapLayers = {}; 
+
+        function initializeInteractiveMap() {
+            if (interactiveMap) { interactiveMap.remove(); interactiveMap = null; }
+            if (timelineSliderInstance && typeof timelineSliderInstance.destroy === 'function') { // Check if destroy exists
+                 timelineSliderInstance.destroy(); 
+                 timelineSliderInstance = null; 
+            }
+            activeMapLayers = {}; 
+
+            const mapDiv = document.getElementById('map');
+            const timelineSliderDiv = document.getElementById('timeline-slider');
+            const timelineDisplayDiv = document.getElementById('timeline-display');
+
+            if (!mapDiv || !timelineSliderDiv || !timelineDisplayDiv) {
+                console.error("No se encontraron los contenedores HTML para el mapa interactivo.");
+                // Optionally, hide the map section or show a user-friendly message
+                const mapSectionEl = document.getElementById('interactive-map-section');
+                if (mapSectionEl) mapSectionEl.innerHTML = '<p class="text-red-500 text-center">Error al cargar el mapa interactivo.</p>';
+                return;
+            }
+            
+            const MAP_CENTER = [41.9028, 12.4964]; const INITIAL_ZOOM = 4;
+            const MIN_YEAR = -100; const MAX_YEAR = 600;  const INITIAL_YEAR_RANGE = [300, 500]; 
+
+            interactiveMap = L.map('map').setView(MAP_CENTER, INITIAL_ZOOM);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors. Datos simplificados.',
+                maxZoom: 18,
+            }).addTo(interactiveMap);
+            L.control.scale({ imperial: false, metric: true }).addTo(interactiveMap);
+
+            const romanEmpireData = { "type": "FeatureCollection", "features": [{"type": "Feature","properties": {"name": "Imperio Romano (aprox. 117 d.C.)","startDate": 50,"endDate": 395,"color": "#1E40AF","description": "Fronteras aproximadas del Imperio Romano antes de su división principal."},"geometry": { "type": "Polygon", "coordinates": [[[-5.48,36.14],[2.0,38.9],[8.0,45.0],[18.0,48.0],[28.0,46.0],[35.0,42.0],[38.0,38.0],[35.0,30.0],[28.0,31.0],[18.0,28.0],[10.0,32.0],[-5.48,36.14]]] }}]};
+            const visigothData = { "type": "FeatureCollection", "features": [{"type": "Feature", "properties": { "group": "Visigodos", "period": "Siglos IV-V d.C.", "startDate": 376, "endDate": 476, "description": "Pueblo germánico crucial en la caída del Imperio Romano de Occidente.", "key_events": "Saqueo de Roma (410 d.C.), Batalla de Adrianópolis (378 d.C.)", "leaders": "Alarico I, Fritigerno", "color": "#B91C1C" },"geometry": { "type": "LineString", "coordinates": [[25.0, 46.0],[20.0, 44.0],[18.0, 42.0],[12.4964, 41.9028],[5.0, 43.0],[-2.0, 40.0]] }}]};
+            const vandalData = { "type": "FeatureCollection", "features": [{"type": "Feature", "properties": { "group": "Vándalos", "period": "Siglo V d.C.", "startDate": 406, "endDate": 455, "description": "Pueblo germánico que estableció un reino en el Norte de África.", "key_events": "Cruce del Rin (406 d.C.), Saqueo de Roma (455 d.C.)", "leaders": "Genserico", "color": "#065F46" },"geometry": { "type": "LineString", "coordinates": [[10.0, 50.0],[5.0, 48.0],[0.0, 45.0],[-5.0, 38.0],[-2.0, 36.0],[8.0, 35.0]] }}]};
+            const hunData = { "type": "FeatureCollection", "features": [{"type": "Feature", "properties": { "group": "Hunos", "period": "Siglos IV-V d.C.", "startDate": 370, "endDate": 453, "description": "Pueblo nómada de Asia Central que presionó al Imperio y a los germanos.", "key_events": "Batalla de los Campos Cataláunicos (451 d.C.)", "leaders": "Atila", "color": "#7C2D12" },"geometry": { "type": "LineString", "coordinates": [[40.0, 47.0],[30.0, 46.0],[20.0, 45.0],[10.0, 45.5],[15.0, 43.0]] }}]};
+
+            async function loadGeoJsonData(data) { return new Promise(resolve => setTimeout(() => resolve(data), 50)); }
+            function styleFeature(feature) { return { color: feature.properties.color || "#3388FF", weight: feature.geometry.type === "Polygon" ? 2 : 4, opacity: 0.85, dashArray: feature.geometry.type === "Polygon" ? '5, 5' : '' }; }
+            function onEachFeatureMap(feature, layer) { 
+                if (feature.properties) {
+                    let popupContent = `<strong>${feature.properties.group || feature.properties.name}</strong>`;
+                    if (feature.properties.period) popupContent += `<br><em>Período: ${feature.properties.period}</em>`;
+                    if (feature.properties.startDate && feature.properties.endDate) popupContent += `<br><em>Años: ${formatYear(feature.properties.startDate)} - ${formatYear(feature.properties.endDate)}</em>`;
+                    if (feature.properties.description) popupContent += `<p>${feature.properties.description}</p>`;
+                    if (feature.properties.key_events) popupContent += `<p><strong>Eventos Clave:</strong> ${feature.properties.key_events}</p>`;
+                    if (feature.properties.leaders) popupContent += `<p><strong>Líderes:</strong> ${feature.properties.leaders}</p>`;
+                    layer.bindPopup(popupContent);
+                }
+            }
+            function addRouteArrows(layer, color) {
+                if (layer.getLayers && layer.getLayers()[0] && layer.getLayers()[0].getLatLngs) {
+                    const latlngs = layer.getLayers()[0].getLatLngs();
+                    if (latlngs.length > 1) { 
+                        return L.polylineDecorator(latlngs, { patterns: [{ offset: 25, repeat: 50, symbol: L.Symbol.arrowHead({ pixelSize: 12, pathOptions: { fillOpacity: 1, weight: 0, color: color }}) }] });
+                    }
+                } return null;
+            }
+            function formatYear(year) { if (year < 0) return `${Math.abs(year)} a.C.`; return `${year} d.C.`; }
+
+            function initializeMapTimeline(allFeatures) { 
+                if (timelineSliderDiv.noUiSlider) { 
+                     timelineSliderDiv.noUiSlider.destroy();
+                }
+                timelineSliderInstance = noUiSlider.create(timelineSliderDiv, {
+                    start: INITIAL_YEAR_RANGE, connect: true, range: { 'min': MIN_YEAR, 'max': MAX_YEAR }, step: 10,
+                    tooltips: [ { to: value => formatYear(Math.round(value)) }, { to: value => formatYear(Math.round(value)) } ],
+                    format: { to: value => Math.round(value), from: value => Number(value) }
+                });
+                timelineSliderInstance.on('update', (values) => {
+                    const [minYear, maxYear] = values.map(Number);
+                    timelineDisplayDiv.innerHTML = `Período: <strong>${formatYear(minYear)}</strong> - <strong>${formatYear(maxYear)}</strong>`;
+                    updateMapLayers(minYear, maxYear);
+                });
+                timelineSliderInstance.set(INITIAL_YEAR_RANGE);
+            }
+            
+            function updateMapLayers(minYear, maxYear) {
+                Object.values(activeMapLayers).forEach(item => {
+                    const props = item.layer.feature && item.layer.feature.properties ? item.layer.feature.properties : (item.layer.getLayers()[0].feature.properties || {});
+                    const featureStartDate = props.startDate; const featureEndDate = props.endDate;
+                    const isVisible = (featureStartDate <= maxYear) && (featureEndDate >= minYear);
+                    if (isVisible) {
+                        if (interactiveMap && !interactiveMap.hasLayer(item.layer)) { interactiveMap.addLayer(item.layer); if (item.decorator) interactiveMap.addLayer(item.decorator); }
+                    } else {
+                        if (interactiveMap && interactiveMap.hasLayer(item.layer)) { interactiveMap.removeLayer(item.layer); if (item.decorator) interactiveMap.removeLayer(item.decorator); }
+                    }
+                });
+            }
+
+            async function mainMapLogic() { 
+                try {
+                    const [empireGeoJson, visigothGeoJson, vandalGeoJson, hunGeoJson] = await Promise.all([
+                        loadGeoJsonData(romanEmpireData), loadGeoJsonData(visigothData), loadGeoJsonData(vandalData), loadGeoJsonData(hunData)
+                    ]);
+                    const empireLayer = L.geoJSON(empireGeoJson, { style: styleFeature, onEachFeature: onEachFeatureMap });
+                    activeMapLayers['empire'] = { layer: empireLayer, decorator: null };
+                    const visigothLayer = L.geoJSON(visigothGeoJson, { style: styleFeature, onEachFeature: onEachFeatureMap });
+                    activeMapLayers['visigoths'] = { layer: visigothLayer, decorator: addRouteArrows(visigothLayer, visigothGeoJson.features[0].properties.color) };
+                    const vandalLayer = L.geoJSON(vandalGeoJson, { style: styleFeature, onEachFeature: onEachFeatureMap });
+                    activeMapLayers['vandals'] = { layer: vandalLayer, decorator: addRouteArrows(vandalLayer, vandalGeoJson.features[0].properties.color) };
+                    const hunLayer = L.geoJSON(hunGeoJson, { style: styleFeature, onEachFeature: onEachFeatureMap });
+                    activeMapLayers['huns'] = { layer: hunLayer, decorator: addRouteArrows(hunLayer, hunGeoJson.features[0].properties.color) };
+                    
+                    const allFeatures = [ ...empireGeoJson.features, ...visigothGeoJson.features, ...vandalGeoJson.features, ...hunGeoJson.features ];
+                    initializeMapTimeline(allFeatures); 
+                    console.log("Mapa interactivo de invasiones inicializado.");
+                } catch (error) {
+                    console.error("Error al cargar o procesar los datos del mapa:", error);
+                    if(timelineDisplayDiv) timelineDisplayDiv.innerHTML = "Error al cargar datos para la línea de tiempo.";
+                }
+            }
+            mainMapLogic(); 
+        }
+
+        // Inicializar la aplicación de la guía
+        renderNavigation();
+        if (studyData.sections.length > 0) {
+            loadSection(studyData.sections[0].id); 
+        }
+    </script>
+</body>
+</html>
